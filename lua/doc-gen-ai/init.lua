@@ -17,7 +17,7 @@ function M.setup(opts)
         desc = 'Generate KDoc for selected code',
     })
 
-    vim.api.nvim_create_user_command('CancelDocGen', function(cmd_opts)
+    vim.api.nvim_create_user_command('DocGenCancel', function(cmd_opts)
         generator.cancel()
     end, {
         desc = 'Cancel running kdoc job'
