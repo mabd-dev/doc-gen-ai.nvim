@@ -1,12 +1,13 @@
 # Changelog
 
-## Unreelased
+## [0.2.0] - 2026-01-17
 
-### ✨ Features
-- **Multiple providers support**: `Ollama` for local model, `groq` for remote models
-> Support for more providers will come later
+### Added
+- Multiple provider support: `ollama` (local) and `groq` (remote)
+- Per-provider configuration for models
+- `provider` option to select active provider
 
-- **Provider Config**: configure each model + choose provider to use
+More providers coming soon.
 
 ## [0.1.0] - 2026-01-17
 Initial Release - Experimental
