@@ -1,5 +1,11 @@
 # Changelog
 
+
+## Unreleased
+### Added
+- **health check**: check if `doc-gen-ai` cli cmd is installed
+
+
 ## [0.2.0] - 2026-01-17
 
 ### Added
