@@ -25,6 +25,21 @@ If existing documentation is detected, you'll be prompted to:
 ```lua
 {
   "mabd-dev/doc-gen-ai.nvim",
+  opts = {
+    running_provider = "ollama",
+    providers = {
+        ollama = {
+            base_url = "http://localhost:11434",
+            base_model = "qwen2.5-coder:7b",
+            polish_docs = true,
+        },
+        groq = {
+            base_url = "https://api.groq.com/openai/v1",
+            base_model = "qwen/qwen3-32b",
+            polish_docs = false,
+        }
+    }
+    } 
 }
 ```
 
