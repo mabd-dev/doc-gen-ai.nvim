@@ -71,42 +71,61 @@ local function run_docgen(bufnr, input, replace_existing, existing, start_line, 
 
     show_loader(bufnr, start_line)
 
-    active_job = vim.fn.jobstart({ 'doc-gen-ai' }, {
-        stdin = 'pipe',
-        stdout_buffered = true,
-        stderr_buffered = true,
+    local running_provider = config.options.running_provider
 
-        on_stdout = function(_, data)
-            if data then vim.list_extend(stdout_chunks, data) end
-        end,
+    local base_url = ''
+    local base_model = ''
+    if running_provider == 'ollama' then
+        base_url = config.options.providers.ollama.base_url
+        base_model = config.options.providers.ollama.base_model
+    elseif running_provider == 'groq' then
+        base_url = config.options.providers.groq.base_url
+        base_model = config.options.providers.groq.base_model
+    end
 
-        on_stderr = function(_, data)
-            if data then vim.list_extend(stderr_chunks, data) end
-        end,
+    active_job = vim.fn.jobstart(
+        {
+            'doc-gen-ai',
+            '--provider=' .. running_provider,
+            '--base-url=' .. base_url,
+            '--base-model=' .. base_model,
+        },
+        {
+            stdin = 'pipe',
+            stdout_buffered = true,
+            stderr_buffered = true,
 
-        on_exit = function(_, exit_code)
-            vim.schedule(function()
-                hide_loader(bufnr)
+            on_stdout = function(_, data)
+                if data then vim.list_extend(stdout_chunks, data) end
+            end,
 
-                if exit_code ~= 0 then
-                    utils.log_error('doc-gen-ai failed:\n' .. table.concat(stderr_chunks, '\n'))
-                    return
-                end
+            on_stderr = function(_, data)
+                if data then vim.list_extend(stderr_chunks, data) end
+            end,
 
-                while #stdout_chunks > 0 and stdout_chunks[#stdout_chunks] == '' do
-                    table.remove(stdout_chunks)
-                end
+            on_exit = function(_, exit_code)
+                vim.schedule(function()
+                    hide_loader(bufnr)
 
-                if #stdout_chunks == 0 then
-                    utils.log_warn('doc-gen-ai: empty output')
-                    return
-                end
+                    if exit_code ~= 0 then
+                        utils.log_error('doc-gen-ai failed:\n' .. table.concat(stderr_chunks, '\n'))
+                        return
+                    end
 
-                utils.log('should insert kdoc now')
-                do_insert(bufnr, stdout_chunks, replace_existing, existing, start_line, end_line)
-            end)
-        end
-    })
+                    while #stdout_chunks > 0 and stdout_chunks[#stdout_chunks] == '' do
+                        table.remove(stdout_chunks)
+                    end
+
+                    if #stdout_chunks == 0 then
+                        utils.log_warn('doc-gen-ai: empty output')
+                        return
+                    end
+
+                    utils.log('should insert kdoc now')
+                    do_insert(bufnr, stdout_chunks, replace_existing, existing, start_line, end_line)
+                end)
+            end
+        })
 
     -- Send input and close stdin
     vim.fn.chansend(active_job, input)
