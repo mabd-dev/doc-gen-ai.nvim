@@ -42,6 +42,14 @@ Run `:checkhealth doc-gen-ai` to verify your setup.
 }
 ```
 
+latest stable version
+```lua
+{
+  "mabd-dev/doc-gen-ai.nvim",
+  tag = "<latest-tag>",
+}
+```
+
 ### Commands
 
 | Command | Description |
