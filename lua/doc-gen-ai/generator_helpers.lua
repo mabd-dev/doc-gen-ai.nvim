@@ -38,4 +38,26 @@ function M.find_existing_kdoc(bufnr, line)
     return { start_line = kdoc_start, end_line = kdoc_end }
 end
 
+function M.get_current_function()
+    local node = vim.treesitter.get_node()
+
+    while node do
+        if node:type() == "function_declaration" then
+            local text = vim.treesitter.get_node_text(node, 0)
+
+            local start_row, start_col, end_row, end_col = node:range()
+
+            return {
+                text = text,
+                start_row = start_row, -- 0-indexed
+                end_row = end_row,
+                node = node,
+            }
+        end
+        node = node:parent()
+    end
+
+    return nil
+end
+
 return M

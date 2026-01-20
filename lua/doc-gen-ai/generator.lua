@@ -15,7 +15,7 @@ local function show_loader(bufnr, line)
     spinner_idx = 1
 
     local function update_spinner()
-        vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line - 2, line)
+        vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line - 1, line)
 
         vim.api.nvim_buf_set_extmark(bufnr, ns_id, line - 1, 0, {
             virt_text = { { ' ' .. spinner_frames[spinner_idx], 'DiagnosticInfo' } },
@@ -148,7 +148,7 @@ function M.cancel()
     return false
 end
 
-function M.run(opts)
+function M.run(opts, start_line, end_line)
     local bufnr = vim.api.nvim_get_current_buf()
     local filetype = vim.bo[bufnr].filetype
 
@@ -157,8 +157,6 @@ function M.run(opts)
         return
     end
 
-    local start_line = opts.line1
-    local end_line = opts.line2
     local lines = vim.api.nvim_buf_get_lines(bufnr, start_line - 1, end_line, false)
     local input = table.concat(lines, "\n")
 
