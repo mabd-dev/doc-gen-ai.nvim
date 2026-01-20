@@ -15,7 +15,7 @@ local function show_loader(bufnr, line)
     spinner_idx = 1
 
     local function update_spinner()
-        vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line - 2, line)
+        vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line - 1, line)
 
         vim.api.nvim_buf_set_extmark(bufnr, ns_id, line - 1, 0, {
             virt_text = { { ' ' .. spinner_frames[spinner_idx], 'DiagnosticInfo' } },
@@ -47,6 +47,28 @@ local function supported_file_type(filetype)
         return false
     end
     return true
+end
+
+local function get_current_function()
+    local node = vim.treesitter.get_node()
+
+    while node do
+        if node:type() == "function_declaration" then
+            local text = vim.treesitter.get_node_text(node, 0)
+
+            local start_row, start_col, end_row, end_col = node:range()
+
+            return {
+                text = text,
+                start_row = start_row, -- 0-indexed
+                end_row = end_row,
+                node = node,
+            }
+        end
+        node = node:parent()
+    end
+
+    return nil
 end
 
 -- TODO: re-check function signature position and insert above it
@@ -157,8 +179,15 @@ function M.run(opts)
         return
     end
 
-    local start_line = opts.line1
-    local end_line = opts.line2
+    local currFunction = get_current_function()
+    if currFunction == nil then
+        utils.log_error('no function found under current cursor')
+        return
+    end
+
+    -- TODO: make code works with 0-based start_line and end_line
+    local start_line = currFunction.start_row + 1
+    local end_line = currFunction.end_row + 1
     local lines = vim.api.nvim_buf_get_lines(bufnr, start_line - 1, end_line, false)
     local input = table.concat(lines, "\n")
 
