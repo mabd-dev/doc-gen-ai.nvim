@@ -157,12 +157,6 @@ function M.run(opts, start_line, end_line)
         return
     end
 
-    local currFunction = get_current_function()
-    if currFunction == nil then
-        utils.log_error('no function found under current cursor')
-        return
-    end
-
     local lines = vim.api.nvim_buf_get_lines(bufnr, start_line - 1, end_line, false)
     local input = table.concat(lines, "\n")
 
