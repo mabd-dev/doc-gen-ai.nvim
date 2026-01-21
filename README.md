@@ -5,7 +5,7 @@ A Neovim plugin that generates KDoc documentation for Kotlin functions using loc
 ## Requirements
 
 - Neovim >= 0.9.0
-- [doc-gen-ai](https://github.com/mabd-dev/doc-gen-ai) CLI tool
+- [doc-gen-ai](https://github.com/mabd-dev/doc-gen-ai-releases) CLI tool
 - [Ollama](https://ollama.ai/) for local models
 - [Groq](https://groq.com/) API key for remote models
 - Kotlin treesitter parser (optional, for automatic function detection)
