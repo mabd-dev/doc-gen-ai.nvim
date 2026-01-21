@@ -8,6 +8,7 @@
 - **health check**: 
     - check if `doc-gen-ai` cli cmd is installed
     - check if Kotlin treesitter parser is installed (optional)
+- **Handle buffer change**: move spinner + Insert docs on the correct line when file get's updated
 
 ### Changed
 - `:DocGen` command no longer requires visual selection
