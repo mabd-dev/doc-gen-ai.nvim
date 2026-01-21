@@ -7,22 +7,40 @@ local helpers = require('doc-gen-ai.generator_helpers')
 local active_job = nil
 
 local ns_id = vim.api.nvim_create_namespace('docgen_loader')
+local spinner_mark_id = vim.api.nvim_create_namespace('docgen_marks')
+
 local spinner_frames = { '⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏' }
 local spinner_timer = nil
 local spinner_idx = 1
 
+local function get_spinner_row(bufnr)
+    -- Get current position from the tracked mark
+    local pos = vim.api.nvim_buf_get_extmark_by_id(bufnr, ns_id, spinner_mark_id, {})
+    if not pos or #pos == 0 then return nil end
+
+    return pos[1]
+end
+
 local function show_loader(bufnr, line)
     spinner_idx = 1
 
-    local function update_spinner()
-        vim.api.nvim_buf_clear_namespace(bufnr, ns_id, line - 1, line)
+    spinner_mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns_id, line - 1, 0, {
+        virt_text = { { ' ' .. spinner_frames[spinner_idx], 'DiagnosticInfo' } },
+        virt_text_pos = 'eol',
+    })
 
-        vim.api.nvim_buf_set_extmark(bufnr, ns_id, line - 1, 0, {
+    local function update_spinner()
+        local current_row = get_spinner_row(bufnr)
+        if not current_row then return end
+
+        spinner_idx = (spinner_idx % #spinner_frames) + 1
+
+        -- Update mark at its CURRENT position
+        spinner_mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns_id, current_row, 0, {
+            id = spinner_mark_id,
             virt_text = { { ' ' .. spinner_frames[spinner_idx], 'DiagnosticInfo' } },
             virt_text_pos = 'eol',
         })
-
-        spinner_idx = (spinner_idx % #spinner_frames) + 1
     end
 
     update_spinner()
@@ -105,6 +123,8 @@ local function run_docgen(bufnr, input, replace_existing, existing, start_line, 
 
             on_exit = function(_, exit_code)
                 vim.schedule(function()
+                    local spinner_row = get_spinner_row(bufnr)
+
                     hide_loader(bufnr)
 
                     if exit_code ~= 0 then
@@ -122,7 +142,11 @@ local function run_docgen(bufnr, input, replace_existing, existing, start_line, 
                     end
 
                     utils.log('should insert kdoc now')
-                    do_insert(bufnr, stdout_chunks, replace_existing, existing, start_line, end_line)
+                    if not spinner_row then
+                        utils.log_error('file changed too much, can\'t insert docs')
+                        return
+                    end
+                    do_insert(bufnr, stdout_chunks, replace_existing, existing, spinner_row, end_line)
                 end)
             end
         })
